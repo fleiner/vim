@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:	Sather/pSather
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
-" URL:		http://www.fleiner.com/vim/syntax/sather.vim
+" URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/sather.vim
 " Last Change:	2003 May 11
 
 " Sather is a OO-language developped at the International Computer Science
