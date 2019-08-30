@@ -119,7 +119,7 @@ if exists("java_space_errors")
 endif
 
 syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" contains=javaNumber,javaCharacter,javaString
-syn match   javaUserLabel	"^\s*[_$a-zA-Z][_$a-zA-Z0-9_]*\s*:"he=e-1 contains=javaLabel
+syn match   javaUserLabel	"^\s*[_$a-zA-Z][_$a-zA-Z0-9_]*\s*:\(:\)\@!"he=e-1 contains=javaLabel
 syn keyword javaLabel		default
 
 " highlighting C++ keywords as errors removed, too many people find it
