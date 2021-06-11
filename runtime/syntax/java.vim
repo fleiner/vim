@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2018 July 26
+" Last Change:	2021 Jun 11
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -59,8 +59,12 @@ syn match   javaUserLabelRef	"\k\+" contained
 syn match   javaVarArg		"\.\.\."
 syn keyword javaScopeDecl	public protected private abstract
 
+function! s:isModuleInfoDeclarationCurrentBuffer() abort
+    return fnamemodify(bufname("%"), ":t") =~ '^module-info\%(\.class\>\)\@!'
+endfunction
+
 " Java Modules(Since Java 9, for "module-info.java" file)
-if fnamemodify(bufname("%"), ":t") == "module-info.java"
+if s:isModuleInfoDeclarationCurrentBuffer()
     syn keyword javaModuleStorageClass	module transitive
     syn keyword javaModuleStmt		open requires exports opens uses provides
     syn keyword javaModuleExternal	to with
@@ -153,7 +157,7 @@ syn cluster javaTop add=javaComment,javaLineComment
 if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   syntax case ignore
   " syntax coloring for javadoc comments (HTML)
-  syntax include @javaHtml <sfile>:p:h/html.vim
+  syntax include @javaHtml syntax/html.vim
   unlet b:current_syntax
   " HTML enables spell checking for all text that is not in a syntax item. This
   " is wrong for Java (all identifiers would be spell-checked), so it's undone
@@ -336,7 +340,7 @@ hi def link htmlComment		Special
 hi def link htmlCommentPart		Special
 hi def link javaSpaceError		Error
 
-if fnamemodify(bufname("%"), ":t") == "module-info.java"
+if s:isModuleInfoDeclarationCurrentBuffer()
     hi def link javaModuleStorageClass	StorageClass
     hi def link javaModuleStmt		Statement
     hi def link javaModuleExternal	Include
@@ -348,6 +352,7 @@ if main_syntax == 'java'
   unlet main_syntax
 endif
 
+delfunction! s:isModuleInfoDeclarationCurrentBuffer
 let b:spell_options="contained"
 let &cpo = s:cpo_save
 unlet s:cpo_save
