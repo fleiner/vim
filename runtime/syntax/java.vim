@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 May 12
+" Last Change:	2022 May 13
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -23,6 +23,7 @@ set cpo&vim
 syn match javaError "[\\@`]"
 syn match javaError "<<<\|\.\.\|=>\|||=\|&&=\|\*\/"
 
+" FIXME: A dangling syntax group? See javaVarArg.
 syn match javaOK "\.\.\."
 
 " use separate name so that it can be deleted in javacc.vim
@@ -76,20 +77,44 @@ if exists("java_highlight_java_lang_ids")
 endif
 if exists("java_highlight_all")  || exists("java_highlight_java")  || exists("java_highlight_java_lang")
   " java.lang.*
+  "
+  " The keywords of javaR_JavaLang, javaC_JavaLang, javaE_JavaLang,
+  " and javaX_JavaLang are sub-grouped according to the Java version
+  " of their introduction, and sub-group keywords (that is, class
+  " names) are arranged in alphabetical order, so that future newer
+  " keywords can be pre-sorted and appended without disturbing
+  " the current keyword placement. The below _match_es follow suit.
+
+  " FIXME: A dangling syntax group? See javaC_JavaLang.
   syn match javaLangClass "\<System\>"
-  syn keyword javaR_JavaLang NegativeArraySizeException ArrayStoreException IllegalStateException RuntimeException IndexOutOfBoundsException UnsupportedOperationException ArrayIndexOutOfBoundsException ArithmeticException ClassCastException EnumConstantNotPresentException StringIndexOutOfBoundsException IllegalArgumentException IllegalMonitorStateException IllegalThreadStateException NumberFormatException NullPointerException TypeNotPresentException SecurityException
+  syn keyword javaR_JavaLang ArithmeticException ArrayIndexOutOfBoundsException ArrayStoreException ClassCastException IllegalArgumentException IllegalMonitorStateException IllegalThreadStateException IndexOutOfBoundsException NegativeArraySizeException NullPointerException NumberFormatException RuntimeException SecurityException StringIndexOutOfBoundsException IllegalStateException UnsupportedOperationException EnumConstantNotPresentException TypeNotPresentException IllegalCallerException LayerInstantiationException
   syn cluster javaTop add=javaR_JavaLang
   syn cluster javaClasses add=javaR_JavaLang
   hi def link javaR_JavaLang javaR_Java
-  syn keyword javaC_JavaLang Process RuntimePermission Class ThreadLocal Package Character Long Short UnicodeBlock InheritableThreadLocal ClassLoader StringBuffer StringBuilder StrictMath State ThreadGroup Runtime Object Integer Boolean Enum Subset Void Byte Thread StackTraceElement String Math Float Double SecurityManager ProcessBuilder Compiler Number
+  " Member enumerations:
+  syn match   javaC_JavaLang "\%(\<Thread\.\)\@<=\<State\>"
+  syn match   javaC_JavaLang "\%(\<Character\.\)\@<=\<UnicodeScript\>"
+  syn match   javaC_JavaLang "\%(\<ProcessBuilder\.Redirect\.\)\@<=\<Type\>"
+  syn match   javaC_JavaLang "\%(\<StackWalker\.\)\@<=\<Option\>"
+  syn match   javaC_JavaLang "\%(\<System\.Logger\.\)\@<=\<Level\>"
+  " Member classes:
+  syn match   javaC_JavaLang "\%(\<Character\.\)\@<=\<Subset\>"
+  syn match   javaC_JavaLang "\%(\<Character\.\)\@<=\<UnicodeBlock\>"
+  syn match   javaC_JavaLang "\%(\<ProcessBuilder\.\)\@<=\<Redirect\>"
+  syn match   javaC_JavaLang "\%(\<ModuleLayer\.\)\@<=\<Controller\>"
+  syn match   javaC_JavaLang "\%(\<Runtime\.\)\@<=\<Version\>"
+  syn match   javaC_JavaLang "\%(\<System\.\)\@<=\<LoggerFinder\>"
+  syn match   javaC_JavaLang "\%(\<Enum\.\)\@<=\<EnumDesc\>"
+  syn keyword javaC_JavaLang Boolean Character Class ClassLoader Compiler Double Float Integer Long Math Number Object Process Runtime SecurityManager String StringBuffer Thread ThreadGroup Byte Short Void InheritableThreadLocal Package RuntimePermission ThreadLocal StrictMath StackTraceElement Enum ProcessBuilder StringBuilder ClassValue Module ModuleLayer StackWalker Record
+  syn match   javaC_JavaLang "\<System\>"	" See javaDebug.
   syn cluster javaTop add=javaC_JavaLang
   syn cluster javaClasses add=javaC_JavaLang
   hi def link javaC_JavaLang javaC_Java
-  syn keyword javaE_JavaLang IncompatibleClassChangeError InternalError UnknownError ClassCircularityError AssertionError ThreadDeath IllegalAccessError NoClassDefFoundError ClassFormatError UnsupportedClassVersionError NoSuchFieldError VerifyError ExceptionInInitializerError InstantiationError LinkageError NoSuchMethodError Error UnsatisfiedLinkError StackOverflowError AbstractMethodError VirtualMachineError OutOfMemoryError
+  syn keyword javaE_JavaLang AbstractMethodError ClassCircularityError ClassFormatError Error IllegalAccessError IncompatibleClassChangeError InstantiationError InternalError LinkageError NoClassDefFoundError NoSuchFieldError NoSuchMethodError OutOfMemoryError StackOverflowError ThreadDeath UnknownError UnsatisfiedLinkError VerifyError VirtualMachineError ExceptionInInitializerError UnsupportedClassVersionError AssertionError BootstrapMethodError
   syn cluster javaTop add=javaE_JavaLang
   syn cluster javaClasses add=javaE_JavaLang
   hi def link javaE_JavaLang javaE_Java
-  syn keyword javaX_JavaLang CloneNotSupportedException Exception NoSuchMethodException IllegalAccessException NoSuchFieldException Throwable InterruptedException ClassNotFoundException InstantiationException
+  syn keyword javaX_JavaLang ClassNotFoundException CloneNotSupportedException Exception IllegalAccessException InstantiationException InterruptedException NoSuchMethodException Throwable NoSuchFieldException ReflectiveOperationException
   syn cluster javaTop add=javaX_JavaLang
   syn cluster javaClasses add=javaX_JavaLang
   hi def link javaX_JavaLang javaX_Java
