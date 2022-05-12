@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2021 Jun 11
+" Last Change:	2022 May 12
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -81,7 +81,7 @@ if exists("java_highlight_all")  || exists("java_highlight_java")  || exists("ja
   syn cluster javaTop add=javaR_JavaLang
   syn cluster javaClasses add=javaR_JavaLang
   hi def link javaR_JavaLang javaR_Java
-  syn keyword javaC_JavaLang Process RuntimePermission StringKeySet CharacterData01 Class ThreadLocal ThreadLocalMap CharacterData0E Package Character StringCoding Long ProcessImpl ProcessEnvironment Short AssertionStatusDirectives 1PackageInfoProxy UnicodeBlock InheritableThreadLocal AbstractStringBuilder StringEnvironment ClassLoader ConditionalSpecialCasing CharacterDataPrivateUse StringBuffer StringDecoder Entry StringEntry WrappedHook StringBuilder StrictMath State ThreadGroup Runtime CharacterData02 MethodArray Object CharacterDataUndefined Integer Gate Boolean Enum Variable Subset StringEncoder Void Terminator CharsetSD IntegerCache CharacterCache Byte CharsetSE Thread SystemClassLoaderAction CharacterDataLatin1 StringValues StackTraceElement Shutdown ShortCache String ConverterSD ByteCache Lock EnclosingMethodInfo Math Float Value Double SecurityManager LongCache ProcessBuilder StringEntrySet Compiler Number UNIXProcess ConverterSE ExternalData CaseInsensitiveComparator CharacterData00 NativeLibrary
+  syn keyword javaC_JavaLang Process RuntimePermission Class ThreadLocal Package Character Long Short UnicodeBlock InheritableThreadLocal ClassLoader StringBuffer StringBuilder StrictMath State ThreadGroup Runtime Object Integer Boolean Enum Subset Void Byte Thread StackTraceElement String Math Float Double SecurityManager ProcessBuilder Compiler Number
   syn cluster javaTop add=javaC_JavaLang
   syn cluster javaClasses add=javaC_JavaLang
   hi def link javaC_JavaLang javaC_Java
