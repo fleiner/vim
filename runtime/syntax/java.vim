@@ -215,8 +215,10 @@ syn match   javaComment		 "/\*\*/"
 " Strings and constants
 syn match   javaSpecialError	 contained "\\."
 syn match   javaSpecialCharError contained "[^']"
-syn match   javaSpecialChar	 contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'ntbrf]\|u\x\{4\}\)"
+syn match   javaSpecialChar	 contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'bstnfr]\|u\x\{4\}\)"
 syn region  javaString		start=+"+ end=+"+ end=+$+ contains=javaSpecialChar,javaSpecialError,@Spell
+syn region  javaString		start=+"""[ \t\x0c\r]*$+hs=e+1 end=+"""+he=s-1 contains=javaSpecialChar,javaSpecialError,javaTextBlockError,@Spell
+syn match   javaTextBlockError	+"""\s*"""+
 " next line disabled, it can cause a crash for a long line
 "syn match   javaStringError	  +"\([^"\\]\|\\.\)*$+
 syn match   javaCharacter	 "'[^']*'" contains=javaSpecialChar,javaSpecialCharError
@@ -230,7 +232,7 @@ syn match   javaNumber		 "\<\d\(\d\|_\d\)*\([eE][-+]\=\d\(\d\|_\d\)*\)\=[fFdD]\>
 " unicode characters
 syn match   javaSpecial "\\u\d\{4\}"
 
-syn cluster javaTop add=javaString,javaCharacter,javaNumber,javaSpecial,javaStringError
+syn cluster javaTop add=javaString,javaCharacter,javaNumber,javaSpecial,javaStringError,javaTextBlockError
 
 if exists("java_highlight_functions")
   syn match   javaMethodReference	"::\%(:\)\@!"
@@ -260,7 +262,9 @@ if exists("java_highlight_debug")
   " Strings and constants
   syn match   javaDebugSpecial		contained "\\\d\d\d\|\\."
   syn region  javaDebugString		contained start=+"+  end=+"+  contains=javaDebugSpecial
-  syn match   javaDebugStringError	+"\([^"\\]\|\\.\)*$+
+  syn region  javaDebugString		contained start=+"""[ \t\x0c\r]*$+hs=e+1 end=+"""+he=s-1 contains=javaDebugSpecial,javaDebugTextBlockError
+  syn match   javaDebugStringError	contained +"\([^"\\]\|\\.\)*$+
+  syn match   javaDebugTextBlockError	contained +"""\s*"""+
   syn match   javaDebugCharacter	contained "'[^\\]'"
   syn match   javaDebugSpecialCharacter contained "'\\.'"
   syn match   javaDebugSpecialCharacter contained "'\\''"
@@ -283,6 +287,7 @@ if exists("java_highlight_debug")
   hi def link javaDebug		 Debug
   hi def link javaDebugString		 DebugString
   hi def link javaDebugStringError	 javaError
+  hi def link javaDebugTextBlockError	 javaError
   hi def link javaDebugType		 DebugType
   hi def link javaDebugBoolean		 DebugBoolean
   hi def link javaDebugNumber		 Debug
@@ -354,6 +359,7 @@ hi def link javaSpecialChar		SpecialChar
 hi def link javaNumber			Number
 hi def link javaError			Error
 hi def link javaStringError		Error
+hi def link javaTextBlockError		Error
 hi def link javaStatement		Statement
 hi def link javaOperator		Operator
 hi def link javaComment		Comment
