@@ -40,6 +40,14 @@ syn keyword javaBoolean		true false
 syn keyword javaConstant	null
 syn keyword javaTypedef		this super
 syn keyword javaOperator	var new instanceof
+" Since the yield statement, which could take a parenthesised operand,
+" and _qualified_ yield methods get along within the switch block
+" (JLS-17, $3.8), it seems futile to make a region definition for this
+" block; instead look for the _yield_ word alone, and if found,
+" backtrack (arbitrarily) 80 bytes, at most, on the matched line and,
+" if necessary, on the line before that (h: \@<=), trying to match
+" neither a method reference nor a qualified method invocation.
+syn match   javaOperator	"\%(\%(::\|\.\)[[:space:]\n]*\)\@80<!\<yield\>"
 syn keyword javaType		boolean char byte short int long float double
 syn keyword javaType		void
 syn keyword javaStatement	return
@@ -147,7 +155,7 @@ if exists("java_space_errors")
   endif
 endif
 
-syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" contains=javaNumber,javaCharacter,javaString
+syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" end="->" contains=javaNumber,javaCharacter,javaString,javaConstant,@javaClasses
 syn match   javaUserLabel	"^\s*[_$a-zA-Z][_$a-zA-Z0-9_]*\s*:"he=e-1 contains=javaLabel
 syn keyword javaLabel		default
 
