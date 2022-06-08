@@ -19,6 +19,9 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+" Admit the ASCII dollar sign to keyword characters (JLS-17, $3.8).
+execute 'syntax iskeyword '.&iskeyword.',$'
+
 " some characters that cannot be in a java program (outside a string)
 syn match javaError "[\\@`]"
 syn match javaError "<<<\|\.\.\|=>\|||=\|&&=\|\*\/"
@@ -55,7 +58,8 @@ syn keyword javaStorageClass	static synchronized transient volatile final strict
 syn keyword javaExceptions	throw try catch finally
 syn keyword javaAssert		assert
 syn keyword javaMethodDecl	synchronized throws
-syn keyword javaClassDecl	extends implements interface
+syn keyword javaClassDecl	extends implements interface sealed permits
+syn match   javaClassDecl	"\<non-sealed\>"
 " to differentiate the keyword class from MyClass.class we use a match here
 syn match   javaTypedef		"\.\s*\<class\>"ms=s+1
 syn keyword javaClassDecl	enum record
