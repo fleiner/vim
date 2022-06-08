@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 May 13
+" Last Change:	2022 Jun 08
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -225,6 +225,10 @@ syn match   javaSpecial "\\u\d\{4\}"
 syn cluster javaTop add=javaString,javaCharacter,javaNumber,javaSpecial,javaStringError
 
 if exists("java_highlight_functions")
+  syn match   javaMethodReference	"::\%(:\)\@!"
+  hi def link javaMethodReference	PreProc
+  syn cluster javaTop add=javaMethodReference
+
   if java_highlight_functions == "indent"
     syn match  javaFuncDef "^\(\t\| \{8\}\)[_$a-zA-Z][_$a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
     syn region javaFuncDef start=+^\(\t\| \{8\}\)[$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
