@@ -327,8 +327,7 @@ if exists("java_highlight_functions")
     endif
   endif
 
-  syn match   javaLambdaDef "\<\K\k*\>\%(\<default\>\)\@<!\s*->"
-  syn cluster javaTop add=javaFuncDef,javaLambdaDef
+  syn cluster javaTop add=javaFuncDef
   syn region  javaBlock matchgroup=javaBlockStart start="{" end="}" transparent fold
   hi def link javaBlockStart javaFuncDef
 else
@@ -400,8 +399,36 @@ syn match   javaParenError	 "\]"
 hi def link javaParenError	javaError
 
 if exists("java_highlight_functions")
-  syn match javaLambdaDef "\k\@4<!(\%(\k\|[[:space:]<>?\[\]@,.]\)*)\s*->"
-  " needs to be defined after the parenthesis error catcher to work
+  " Make ()-matching definitions after the parenthesis error catcher.
+  if java_highlight_functions == "signature"
+    syn keyword javaParamModifier contained final
+    hi def link javaParamModifier javaConceptKind
+    syn keyword javaLambdaVarType contained var
+    hi def link javaLambdaVarType javaOperator
+
+    " Note that here and elsewhere a single-line token is used for \z,
+    " with other tokens repeated as necessary, to overcome the lack of
+    " support for multi-line matching with \z.
+    "
+    " Match:	([@A [@B ...] final] var a[, var b, ...]) ->
+    "		| ([@A [@B ...] final] T a[, T b, ...]) ->
+    " As general and befitting the supported list of formal parameters
+    " of a lambda expression as the following pattern is, it would
+    " still fail to match an expression with an interspersed comment
+    " or with a parameterised lambda parameter type written across
+    " multiple lines.
+    syn region  javaLambdaDef1 transparent matchgroup=javaLambdaDef start=/\k\@4<!(\%([[:space:]\n]*\%(\%(@\%(\K\k*\.\)*\K\k*\>\%((\_.\{-1,})\)\{-,1}[[:space:]\n]\+\)*\%(final[[:space:]\n]\+\)\=\%(\<\K\k*\>\.\)*\<\K\k*\>\%(<[^(){}]*[[:space:]-]\@<!>\)\=\%(\%(\%(\[\]\)\+\|\.\.\.\)\)\=[[:space:]\n]\+\<\K\k*\>\%(\[\]\)*\%(,[[:space:]\n]*\)\=\)\+)[[:space:]\n]*\z(->\)\)\@=/ end=/)[[:space:]\n]*\z1/ contains=javaAnnotation,javaParamModifier,javaLambdaVarType,javaType,@javaClasses,javaGenerics,javaVarArg
+    " Match:	() ->
+    "		| (a[, b, ...]) ->
+    syn region  javaLambdaDef2 transparent matchgroup=javaLambdaDef start=/\k\@4<!(\%([[:space:]\n]*\%(\<\K\k*\>\%(,[[:space:]\n]*\)\=\)*)[[:space:]\n]*\z(->\)\)\@=/ end=/)[[:space:]\n]*\z1/
+    " Match:	a ->
+    syn region  javaLambdaDef3 transparent start=/\<\K\k*\>\%(\<default\>\)\@<!\%([[:space:]\n]*\z(->\)\)\@=/ matchgroup=javaLambdaDef end=/\z1/
+    syn cluster javaTop add=javaLambdaDef1,javaLambdaDef2,javaLambdaDef3
+  else
+    syn match   javaLambdaDef "\<\K\k*\>\%(\<default\>\)\@<!\s*->"
+    syn match   javaLambdaDef "\k\@4<!(\%(\k\|[[:space:]<>?\[\]@,.]\)*)\s*->"
+    syn cluster javaTop add=javaLambdaDef
+  endif
 endif
 
 if !exists("java_minlines")
