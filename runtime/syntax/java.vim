@@ -64,6 +64,7 @@ syn keyword javaClassDecl	enum record
 syn match   javaClassDecl	"^class\>"
 syn match   javaClassDecl	"[^.]\s*\<class\>"ms=s+1
 syn match   javaAnnotation	"@\%(\K\k*\.\)*\K\k*\>"
+syn region  javaAnnotation	transparent matchgroup=javaAnnotationStart start=/@\%(\K\k*\.\)*\K\k*(/ end=/)/ skip=/\/\*.\{-}\*\/\|\/\/.*$/ contains=javaAnnotation,javaBlock,javaString,javaBoolean,javaNumber,javaTypedef,javaComment,javaLineComment
 syn match   javaClassDecl	"@interface\>"
 syn keyword javaBranch		break continue nextgroup=javaUserLabelRef skipwhite
 syn match   javaUserLabelRef	"\k\+" contained
@@ -290,7 +291,7 @@ if exists("java_highlight_functions")
   syn match   javaMethodReference	"::\%(:\)\@!"
   hi def link javaMethodReference	PreProc
   syn cluster javaTop add=javaMethodReference
-  syn cluster javaFuncParams contains=javaAnnotation,javaBlock,javaString,javaBoolean,javaNumber,javaTypedef,@javaClasses,javaGenerics,javaType,javaVarArg,javaComment,javaLineComment
+  syn cluster javaFuncParams contains=javaAnnotation,@javaClasses,javaGenerics,javaType,javaVarArg,javaComment,javaLineComment
 
   if java_highlight_functions == "indent"
     syn cluster javaFuncParams add=javaScopeDecl,javaConceptKind,javaStorageClass,javaExternal
@@ -453,6 +454,7 @@ hi def link javaConstant		Constant
 hi def link javaTypedef		Typedef
 hi def link javaTodo			Todo
 hi def link javaAnnotation		PreProc
+hi def link javaAnnotationStart		javaAnnotation
 
 hi def link javaCommentTitle		SpecialComment
 hi def link javaDocTags		Special
