@@ -54,12 +54,11 @@ syn match   javaOperator	"\%(\%(::\|\.\)[[:space:]\n]*\)\@80<!\<yield\>"
 syn keyword javaType		boolean char byte short int long float double
 syn keyword javaType		void
 syn keyword javaStatement	return
-syn keyword javaStorageClass	static synchronized transient volatile final strictfp serializable
+syn keyword javaStorageClass	static synchronized transient volatile strictfp serializable
 syn keyword javaExceptions	throw try catch finally
 syn keyword javaAssert		assert
-syn keyword javaMethodDecl	synchronized throws
-syn keyword javaClassDecl	extends implements interface sealed permits
-syn match   javaClassDecl	"\<non-sealed\>"
+syn keyword javaMethodDecl	throws
+syn keyword javaClassDecl	extends implements interface permits
 " to differentiate the keyword class from MyClass.class we use a match here
 syn match   javaTypedef		"\.\s*\<class\>"ms=s+1
 syn keyword javaClassDecl	enum record
@@ -70,7 +69,10 @@ syn match   javaClassDecl	"@interface\>"
 syn keyword javaBranch		break continue nextgroup=javaUserLabelRef skipwhite
 syn match   javaUserLabelRef	"\k\+" contained
 syn match   javaVarArg		"\.\.\."
-syn keyword javaScopeDecl	public protected private abstract
+syn keyword javaScopeDecl	public protected private
+syn keyword javaConceptKind	abstract final sealed
+syn match   javaConceptKind	"\<non-sealed\>"
+syn match   javaConceptKind	"\<default\>\%(\s*\%(:\|->\)\)\@!"
 
 let s:selectable_regexp_engine = !(v:version < 704)
 let s:module_info_cur_buf = fnamemodify(bufname("%"), ":t") =~ '^module-info\%(\.class\>\)\@!'
@@ -201,7 +203,7 @@ syn keyword javaLabel		default
 " annoying.  Was: if !exists("java_allow_cpp_keywords")
 
 " The following cluster contains all java groups except the contained ones
-syn cluster javaTop add=javaExternal,javaError,javaError,javaBranch,javaLabelRegion,javaLabel,javaConditional,javaRepeat,javaBoolean,javaConstant,javaTypedef,javaOperator,javaType,javaType,javaStatement,javaStorageClass,javaAssert,javaExceptions,javaMethodDecl,javaClassDecl,javaClassDecl,javaClassDecl,javaScopeDecl,javaError,javaError2,javaUserLabel,javaLangObject,javaAnnotation,javaVarArg
+syn cluster javaTop add=javaExternal,javaError,javaError,javaBranch,javaLabelRegion,javaLabel,javaConditional,javaRepeat,javaBoolean,javaConstant,javaTypedef,javaOperator,javaType,javaType,javaStatement,javaStorageClass,javaAssert,javaExceptions,javaMethodDecl,javaClassDecl,javaClassDecl,javaClassDecl,javaScopeDecl,javaConceptKind,javaError,javaError2,javaUserLabel,javaLangObject,javaAnnotation,javaVarArg
 
 
 " Comments
@@ -278,17 +280,17 @@ if exists("java_highlight_functions")
   syn cluster javaTop add=javaMethodReference
 
   if java_highlight_functions == "indent"
-    syn match  javaFuncDef "^\(\t\| \{8\}\)[_$a-zA-Z][_$a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
-    syn region javaFuncDef start=+^\(\t\| \{8\}\)[$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
-    syn match  javaFuncDef "^  [$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
-    syn region javaFuncDef start=+^  [$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
+    syn match  javaFuncDef "^\(\t\| \{8\}\)[_$a-zA-Z][_$a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
+    syn region javaFuncDef start=+^\(\t\| \{8\}\)[$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
+    syn match  javaFuncDef "^  [$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
+    syn region javaFuncDef start=+^  [$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
   else
     " This line catches method declarations at any indentation>0, but it assumes
     " two things:
     "	1. class names are always capitalized (ie: Button)
     "	2. method names are never capitalized (except constructors, of course)
     "syn region javaFuncDef start=+^\s\+\(\(public\|protected\|private\|static\|abstract\|final\|native\|synchronized\)\s\+\)*\(\(void\|boolean\|char\|byte\|short\|int\|long\|float\|double\|\([A-Za-z_][A-Za-z0-9_$]*\.\)*[A-Z][A-Za-z0-9_$]*\)\(<[^>]*>\)\=\(\[\]\)*\s\+[a-z][A-Za-z0-9_$]*\|[A-Z][A-Za-z0-9_$]*\)\s*([^0-9]+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,javaComment,javaLineComment,@javaClasses
-    syn region javaFuncDef start=+^\s\+\(\(public\|protected\|private\|static\|abstract\|final\|native\|synchronized\)\s\+\)*\(<.*>\s\+\)\?\(\(void\|boolean\|char\|byte\|short\|int\|long\|float\|double\|\([A-Za-z_][A-Za-z0-9_$]*\.\)*[A-Z][A-Za-z0-9_$]*\)\(<[^(){}]*>\)\=\(\[\]\)*\s\+[a-z][A-Za-z0-9_$]*\|[A-Z][A-Za-z0-9_$]*\)\s*(+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,javaComment,javaLineComment,@javaClasses,javaAnnotation
+    syn region javaFuncDef start=+^\s\+\(\(public\|protected\|private\|static\|abstract\|final\|native\|synchronized\)\s\+\)*\(<.*>\s\+\)\?\(\(void\|boolean\|char\|byte\|short\|int\|long\|float\|double\|\([A-Za-z_][A-Za-z0-9_$]*\.\)*[A-Z][A-Za-z0-9_$]*\)\(<[^(){}]*>\)\=\(\[\]\)*\s\+[a-z][A-Za-z0-9_$]*\|[A-Z][A-Za-z0-9_$]*\)\s*(+ end=+)+ contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,javaComment,javaLineComment,@javaClasses,javaAnnotation
   endif
   syn match javaLambdaDef "[a-zA-Z_][a-zA-Z0-9_]*\s*->"
   syn match  javaBraces  "[{}]"
@@ -386,6 +388,7 @@ hi def link javaStorageClass		StorageClass
 hi def link javaMethodDecl		javaStorageClass
 hi def link javaClassDecl		javaStorageClass
 hi def link javaScopeDecl		javaStorageClass
+hi def link javaConceptKind		NonText
 
 hi def link javaBoolean		Boolean
 hi def link javaSpecial		Special
