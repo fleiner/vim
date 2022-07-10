@@ -176,9 +176,19 @@ if exists("java_highlight_all")  || exists("java_highlight_java")  || exists("ja
   hi def link javaE_		     javaExceptions
   hi def link javaC_		     javaConstant
 
-  syn keyword javaLangObject clone equals finalize getClass hashCode
-  syn keyword javaLangObject notify notifyAll toString wait
-  hi def link javaLangObject		     javaConstant
+  syn keyword javaLangObject getClass notify notifyAll wait
+
+  " To allow for zero-width matching, lower priority for the following
+  " names of overridable methods by preferring _match_ to _keyword_
+  " (:h syn-priority; also, see method declarations in the source file
+  " of java.lang.Object, with the g:java_highlight_functions variable
+  " set to 'signature'):
+  syn match javaLangObject "\<clone\>"
+  syn match javaLangObject "\<equals\>"
+  syn match javaLangObject "\<finalize\>"
+  syn match javaLangObject "\<hashCode\>"
+  syn match javaLangObject "\<toString\>"
+  hi def link javaLangObject javaConstant
   syn cluster javaTop add=javaLangObject
 endif
 
@@ -286,6 +296,20 @@ if exists("java_highlight_functions")
     syn region  javaFuncDef start=+^\%(\t\| \{8\}\)\K\%(\k\|[ .<>\[\]]\)*([^-+*/]*,\s*+ end=+)+ contains=@javaFuncParams
     syn match   javaFuncDef "^  \K\%(\k\|[ .<>\[\]]\)*([^-+*/]*)" contains=@javaFuncParams
     syn region  javaFuncDef start=+^  \K\%(\k\|[ .<>\[\]]\)*([^-+*/]*,\s*+ end=+)+ contains=@javaFuncParams
+  elseif java_highlight_functions == "signature"
+    " Match method signatures of arbitrarily indented camelCasedName
+    " method declarations: their names and the parameter list parens.
+    syn keyword javaParamModifier contained final
+    syn cluster javaFuncParams add=javaParamModifier
+    hi def link javaParamModifier javaConceptKind
+    hi def link javaFuncDefStart javaFuncDef
+
+    if s:selectable_regexp_engine
+      " Request the new regexp engine for [:upper:] and [:lower:].
+      syn region javaFuncDef transparent matchgroup=javaFuncDefStart start=/\%#=2\%(^\s\+\%(\%(@\%(\K\k*\.\)*\K\k*\>\)\s\+\)*\%(p\%(ublic\|rotected\|rivate\)\s\+\)\=\%(\%(abstract\|default\)\s\+\|\%(\%(final\|native\|s\%(tatic\|trictfp\|ynchronized\)\)\s\+\)*\)\=\%(<.*[[:space:]-]\@<!>\s\+\)\=\%(void\|\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\|\%(\<\K\k*\>\.\)*\<[$_[:upper:]]\k*\>\%(<[^(){}]*[[:space:]-]\@<!>\)\=\)\%(\[\]\)*\)\s\+\)\@<=\<[$_[:lower:]]\k*\>\s*(/ end=/)/ skip=/@\%(\K\k*\.\)*\K\k*(.\{-})\+\|=.\{-})\+\|\%(["})]\s*\)\+)\+\|\/\*.\{-}\*\/\|\/\/.*$/ keepend contains=@javaFuncParams
+    else
+      syn region javaFuncDef transparent matchgroup=javaFuncDefStart start=/\%(^\s\+\%(\%(@\%(\K\k*\.\)*\K\k*\>\)\s\+\)*\%(p\%(ublic\|rotected\|rivate\)\s\+\)\=\%(\%(abstract\|default\)\s\+\|\%(\%(final\|native\|s\%(tatic\|trictfp\|ynchronized\)\)\s\+\)*\)\=\%(<.*[[:space:]-]\@<!>\s\+\)\=\%(void\|\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\|\%(\<\K\k*\>\.\)*\<[^a-z0-9]\k*\>\%(<[^(){}]*[[:space:]-]\@<!>\)\=\)\%(\[\]\)*\)\s\+\)\@<=\<[^A-Z0-9]\k*\>\s*(/ end=/)/ skip=/@\%(\K\k*\.\)*\K\k*(.\{-})\+\|=.\{-})\+\|\%(["})]\s*\)\+)\+\|\/\*.\{-}\*\/\|\/\/.*$/ keepend contains=@javaFuncParams
+    endif
   else
     " Match arbitrarily indented camelCasedName method declarations.
     syn cluster javaFuncParams add=javaScopeDecl,javaConceptKind,javaStorageClass,javaExternal
