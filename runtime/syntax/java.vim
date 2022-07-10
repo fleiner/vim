@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 Jun 08
+" Last Change:	2022 Jul 10
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -209,7 +209,7 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   syn match  javaDocParam	 contained "\s\S\+"
   syn match  javaDocTags	 contained "@\(version\|author\|return\|deprecated\|serial\|serialField\|serialData\)\>"
   syn region javaDocSeeTag	 contained matchgroup=javaDocTags start="@see\s\+" matchgroup=NONE end="\_."re=e-1 contains=javaDocSeeTagParam
-  syn match  javaDocSeeTagParam  contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\(\k\|\.\)*\(#\k\+\((\_[^)]\+)\)\=\)\=@ extend
+  syn match  javaDocSeeTagParam  contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\%(\k\|\.\)*\%(#\k\+\%((\_[^)]*)\)\=\)\=@ extend
   syntax case match
 endif
 
