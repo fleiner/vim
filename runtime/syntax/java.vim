@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:          https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 May 13
+" Last Change:	2022 Jun 08
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -18,6 +18,9 @@ endif
 
 let s:cpo_save = &cpo
 set cpo&vim
+
+" Admit the ASCII dollar sign to keyword characters (JLS-17, $3.8).
+execute 'syntax iskeyword '.&iskeyword.',$'
 
 " some characters that cannot be in a java program (outside a string)
 syn match javaError "[\\@`]"
@@ -40,6 +43,14 @@ syn keyword javaBoolean		true false
 syn keyword javaConstant	null
 syn keyword javaTypedef		this super
 syn keyword javaOperator	var new instanceof
+" Since the yield statement, which could take a parenthesised operand,
+" and _qualified_ yield methods get along within the switch block
+" (JLS-17, $3.8), it seems futile to make a region definition for this
+" block; instead look for the _yield_ word alone, and if found,
+" backtrack (arbitrarily) 80 bytes, at most, on the matched line and,
+" if necessary, on the line before that (h: \@<=), trying to match
+" neither a method reference nor a qualified method invocation.
+syn match   javaOperator	"\%(\%(::\|\.\)[[:space:]\n]*\)\@80<!\<yield\>"
 syn keyword javaType		boolean char byte short int long float double
 syn keyword javaType		void
 syn keyword javaStatement	return
@@ -47,10 +58,11 @@ syn keyword javaStorageClass	static synchronized transient volatile final strict
 syn keyword javaExceptions	throw try catch finally
 syn keyword javaAssert		assert
 syn keyword javaMethodDecl	synchronized throws
-syn keyword javaClassDecl	extends implements interface
+syn keyword javaClassDecl	extends implements interface sealed permits
+syn match   javaClassDecl	"\<non-sealed\>"
 " to differentiate the keyword class from MyClass.class we use a match here
 syn match   javaTypedef		"\.\s*\<class\>"ms=s+1
-syn keyword javaClassDecl	enum
+syn keyword javaClassDecl	enum record
 syn match   javaClassDecl	"^class\>"
 syn match   javaClassDecl	"[^.]\s*\<class\>"ms=s+1
 syn match   javaAnnotation	"@\([_$a-zA-Z][_$a-zA-Z0-9]*\.\)*[_$a-zA-Z][_$a-zA-Z0-9]*\>" contains=javaString
@@ -147,7 +159,7 @@ if exists("java_space_errors")
   endif
 endif
 
-syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" contains=javaNumber,javaCharacter,javaString
+syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" end="->" contains=javaNumber,javaCharacter,javaString,javaConstant,@javaClasses
 syn match   javaUserLabel	"^\s*[_$a-zA-Z][_$a-zA-Z0-9_]*\s*:"he=e-1 contains=javaLabel
 syn keyword javaLabel		default
 
@@ -207,8 +219,10 @@ syn match   javaComment		 "/\*\*/"
 " Strings and constants
 syn match   javaSpecialError	 contained "\\."
 syn match   javaSpecialCharError contained "[^']"
-syn match   javaSpecialChar	 contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'ntbrf]\|u\x\{4\}\)"
+syn match   javaSpecialChar	 contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'bstnfr]\|u\x\{4\}\)"
 syn region  javaString		start=+"+ end=+"+ end=+$+ contains=javaSpecialChar,javaSpecialError,@Spell
+syn region  javaString		start=+"""[ \t\x0c\r]*$+hs=e+1 end=+"""+he=s-1 contains=javaSpecialChar,javaSpecialError,javaTextBlockError,@Spell
+syn match   javaTextBlockError	+"""\s*"""+
 " next line disabled, it can cause a crash for a long line
 "syn match   javaStringError	  +"\([^"\\]\|\\.\)*$+
 syn match   javaCharacter	 "'[^']*'" contains=javaSpecialChar,javaSpecialCharError
@@ -222,9 +236,13 @@ syn match   javaNumber		 "\<\d\(\d\|_\d\)*\([eE][-+]\=\d\(\d\|_\d\)*\)\=[fFdD]\>
 " unicode characters
 syn match   javaSpecial "\\u\d\{4\}"
 
-syn cluster javaTop add=javaString,javaCharacter,javaNumber,javaSpecial,javaStringError
+syn cluster javaTop add=javaString,javaCharacter,javaNumber,javaSpecial,javaStringError,javaTextBlockError
 
 if exists("java_highlight_functions")
+  syn match   javaMethodReference	"::\%(:\)\@!"
+  hi def link javaMethodReference	PreProc
+  syn cluster javaTop add=javaMethodReference
+
   if java_highlight_functions == "indent"
     syn match  javaFuncDef "^\(\t\| \{8\}\)[_$a-zA-Z][_$a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
     syn region javaFuncDef start=+^\(\t\| \{8\}\)[$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,@javaClasses,javaAnnotation
@@ -248,7 +266,9 @@ if exists("java_highlight_debug")
   " Strings and constants
   syn match   javaDebugSpecial		contained "\\\d\d\d\|\\."
   syn region  javaDebugString		contained start=+"+  end=+"+  contains=javaDebugSpecial
-  syn match   javaDebugStringError	+"\([^"\\]\|\\.\)*$+
+  syn region  javaDebugString		contained start=+"""[ \t\x0c\r]*$+hs=e+1 end=+"""+he=s-1 contains=javaDebugSpecial,javaDebugTextBlockError
+  syn match   javaDebugStringError	contained +"\([^"\\]\|\\.\)*$+
+  syn match   javaDebugTextBlockError	contained +"""\s*"""+
   syn match   javaDebugCharacter	contained "'[^\\]'"
   syn match   javaDebugSpecialCharacter contained "'\\.'"
   syn match   javaDebugSpecialCharacter contained "'\\''"
@@ -271,6 +291,7 @@ if exists("java_highlight_debug")
   hi def link javaDebug		 Debug
   hi def link javaDebugString		 DebugString
   hi def link javaDebugStringError	 javaError
+  hi def link javaDebugTextBlockError	 javaError
   hi def link javaDebugType		 DebugType
   hi def link javaDebugBoolean		 DebugBoolean
   hi def link javaDebugNumber		 Debug
@@ -342,6 +363,7 @@ hi def link javaSpecialChar		SpecialChar
 hi def link javaNumber			Number
 hi def link javaError			Error
 hi def link javaStringError		Error
+hi def link javaTextBlockError		Error
 hi def link javaStatement		Statement
 hi def link javaOperator		Operator
 hi def link javaComment		Comment
