@@ -227,13 +227,16 @@ if exists("java_comment_strings")
   syn cluster javaCommentSpecial add=javaCommentString,javaCommentCharacter,javaNumber
   syn cluster javaCommentSpecial2 add=javaComment2String,javaCommentCharacter,javaNumber
 endif
-syn region  javaComment		 start="/\*"  end="\*/" contains=@javaCommentSpecial,javaTodo,@Spell
+syn region  javaComment		 matchgroup=javaCommentStart start="/\*"  end="\*/" contains=@javaCommentSpecial,javaTodo,javaCommentError,javaSpaceError,@Spell
 syn match   javaCommentStar	 contained "^\s*\*[^/]"me=e-1
 syn match   javaCommentStar	 contained "^\s*\*$"
-syn match   javaLineComment	 "//.*" contains=@javaCommentSpecial2,javaTodo,@Spell
+syn match   javaLineComment	 "//.*" contains=@javaCommentSpecial2,javaTodo,javaSpaceError,@Spell
 hi def link javaCommentString javaString
 hi def link javaComment2String javaString
 hi def link javaCommentCharacter javaCharacter
+syn match   javaCommentError	contained "/\*"me=e-1 display
+hi def link javaCommentError	javaError
+hi def link javaCommentStart	javaComment
 
 syn cluster javaTop add=javaComment,javaLineComment
 
@@ -247,13 +250,13 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   " here.
   syntax spell default
 
-  syn region  javaDocComment	start="/\*\*"  end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaTodo,@Spell
-  syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*"   matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,@Spell,javaDocTags,javaDocSeeTag
+  syn region  javaDocComment	start="/\*\*"  end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaTodo,javaCommentError,javaSpaceError,@Spell
+  syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*"   matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag
 
-  syn region javaDocTags	 contained start="{@\(code\|link\|linkplain\|inherit[Dd]oc\|doc[rR]oot\|value\)" end="}"
-  syn match  javaDocTags	 contained "@\(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
+  syn region javaDocTags	 contained start="{@\%(code\|li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
+  syn match  javaDocTags	 contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
   syn match  javaDocParam	 contained "\s\S\+"
-  syn match  javaDocTags	 contained "@\(version\|author\|return\|deprecated\|serial\|serialField\|serialData\)\>"
+  syn match  javaDocTags	 contained "@\%(version\|author\|return\|deprecated\|serial\%(Field\|Data\)\=\)\>"
   syn region javaDocSeeTag	 contained matchgroup=javaDocTags start="@see\s\+" matchgroup=NONE end="\_."re=e-1 contains=javaDocSeeTagParam
   syn match  javaDocSeeTagParam  contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\%(\k\|\.\)*\%(#\k\+\%((\_[^)]*)\)\=\)\=@ extend
   syntax case match
@@ -400,6 +403,13 @@ endif
 if !exists("java_minlines")
   let java_minlines = 10
 endif
+
+" Note that variations of a /*/ balanced comment, e.g., /*/*/, /*//*/,
+" /* /*/, /*  /*/, etc., may have their rightmost /*/ part accepted
+" as a comment start by ':syntax sync ccomment'; consider alternatives
+" to make synchronisation start further towards file's beginning by
+" bumping up g:java_minlines or issuing ':syntax sync fromstart' or
+" preferring &foldmethod set to 'syntax'.
 exec "syn sync ccomment javaComment minlines=" . java_minlines
 
 " The default highlighting.
