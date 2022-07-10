@@ -13,7 +13,6 @@ if !exists("main_syntax")
   endif
   " we define it here so that included files can test for it
   let main_syntax='java'
-  syn region javaFold start="{" end="}" transparent fold
 endif
 
 let s:cpo_save = &cpo
@@ -213,7 +212,7 @@ syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<default\>\
 " annoying.  Was: if !exists("java_allow_cpp_keywords")
 
 " The following cluster contains all java groups except the contained ones
-syn cluster javaTop add=javaExternal,javaError,javaError,javaBranch,javaLabelRegion,javaConditional,javaRepeat,javaBoolean,javaConstant,javaTypedef,javaOperator,javaType,javaType,javaStatement,javaStorageClass,javaAssert,javaExceptions,javaMethodDecl,javaClassDecl,javaClassDecl,javaClassDecl,javaScopeDecl,javaConceptKind,javaError,javaError2,javaUserLabel,javaLangObject,javaAnnotation,javaVarArg
+syn cluster javaTop add=javaExternal,javaError,javaError,javaBranch,javaLabelRegion,javaConditional,javaRepeat,javaBoolean,javaConstant,javaTypedef,javaOperator,javaType,javaType,javaStatement,javaStorageClass,javaAssert,javaExceptions,javaMethodDecl,javaClassDecl,javaClassDecl,javaClassDecl,javaScopeDecl,javaConceptKind,javaError,javaError2,javaUserLabel,javaLangObject,javaAnnotation,javaVarArg,javaBlock
 
 
 " Comments
@@ -227,7 +226,7 @@ if exists("java_comment_strings")
   syn cluster javaCommentSpecial add=javaCommentString,javaCommentCharacter,javaNumber
   syn cluster javaCommentSpecial2 add=javaComment2String,javaCommentCharacter,javaNumber
 endif
-syn region  javaComment		 matchgroup=javaCommentStart start="/\*"  end="\*/" contains=@javaCommentSpecial,javaTodo,javaCommentError,javaSpaceError,@Spell
+syn region  javaComment		 matchgroup=javaCommentStart start="/\*"  end="\*/" contains=@javaCommentSpecial,javaTodo,javaCommentError,javaSpaceError,@Spell fold
 syn match   javaCommentStar	 contained "^\s*\*[^/]"me=e-1
 syn match   javaCommentStar	 contained "^\s*\*$"
 syn match   javaLineComment	 "//.*" contains=@javaCommentSpecial2,javaTodo,javaSpaceError,@Spell
@@ -250,7 +249,7 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   " here.
   syntax spell default
 
-  syn region  javaDocComment	start="/\*\*"  end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaTodo,javaCommentError,javaSpaceError,@Spell
+  syn region  javaDocComment	start="/\*\*"  end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
   syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*"   matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag
 
   syn region javaDocTags	 contained start="{@\%(code\|li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
@@ -291,7 +290,7 @@ if exists("java_highlight_functions")
   syn match   javaMethodReference	"::\%(:\)\@!"
   hi def link javaMethodReference	PreProc
   syn cluster javaTop add=javaMethodReference
-  syn cluster javaFuncParams contains=javaAnnotation,javaBraces,javaString,javaBoolean,javaNumber,javaTypedef,@javaClasses,javaGenerics,javaType,javaVarArg,javaComment,javaLineComment
+  syn cluster javaFuncParams contains=javaAnnotation,javaBlock,javaString,javaBoolean,javaNumber,javaTypedef,@javaClasses,javaGenerics,javaType,javaVarArg,javaComment,javaLineComment
 
   if java_highlight_functions == "indent"
     syn cluster javaFuncParams add=javaScopeDecl,javaConceptKind,javaStorageClass,javaExternal
@@ -326,9 +325,13 @@ if exists("java_highlight_functions")
       syn region javaFuncDef start=/^\s\+\%(\%(@\%(\K\k*\.\)*\K\k*\>\)\s\+\)*\%(p\%(ublic\|rotected\|rivate\)\s\+\)\=\%(\%(abstract\|default\)\s\+\|\%(\%(final\|native\|s\%(tatic\|trictfp\|ynchronized\)\)\s\+\)*\)\=\%(<.*[[:space:]-]\@<!>\s\+\)\=\%(void\|\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\|\%(\<\K\k*\>\.\)*\<[^a-z0-9]\k*\>\%(<[^(){}]*[[:space:]-]\@<!>\)\=\)\%(\[\]\)*\)\s\+\<[^A-Z0-9]\k*\>\s*(/ end=/)/ skip=/@\%(\K\k*\.\)*\K\k*(.\{-})\+\|=.\{-})\+\|\%(["})]\s*\)\+)\+\|\/\*.\{-}\*\/\|\/\/.*$/ keepend contains=@javaFuncParams
     endif
   endif
+
   syn match   javaLambdaDef "\<\K\k*\>\%(\<default\>\)\@<!\s*->"
-  syn match   javaBraces "[{}]"
-  syn cluster javaTop add=javaFuncDef,javaBraces,javaLambdaDef
+  syn cluster javaTop add=javaFuncDef,javaLambdaDef
+  syn region  javaBlock matchgroup=javaBlockStart start="{" end="}" transparent fold
+  hi def link javaBlockStart javaFuncDef
+else
+  syn region  javaBlock start="{" end="}" transparent fold
 endif
 
 if exists("java_highlight_debug")
@@ -416,7 +419,6 @@ exec "syn sync ccomment javaComment minlines=" . java_minlines
 hi def link javaLambdaDef		Function
 hi def link javaFuncDef		Function
 hi def link javaVarArg			Function
-hi def link javaBraces			Function
 hi def link javaBranch			Conditional
 hi def link javaUserLabelRef		javaUserLabel
 hi def link javaLabel			Label
