@@ -72,16 +72,44 @@ syn match   javaUserLabelRef	"\k\+" contained
 syn match   javaVarArg		"\.\.\."
 syn keyword javaScopeDecl	public protected private abstract
 
-function! s:isModuleInfoDeclarationCurrentBuffer() abort
-    return fnamemodify(bufname("%"), ":t") =~ '^module-info\%(\.class\>\)\@!'
-endfunction
+let s:selectable_regexp_engine = !(v:version < 704)
+let s:module_info_cur_buf = fnamemodify(bufname("%"), ":t") =~ '^module-info\%(\.class\>\)\@!'
+lockvar s:selectable_regexp_engine s:module_info_cur_buf
 
-" Java Modules(Since Java 9, for "module-info.java" file)
-if s:isModuleInfoDeclarationCurrentBuffer()
-    syn keyword javaModuleStorageClass	module transitive
-    syn keyword javaModuleStmt		open requires exports opens uses provides
-    syn keyword javaModuleExternal	to with
-    syn cluster javaTop add=javaModuleStorageClass,javaModuleStmt,javaModuleExternal
+" Java modules (since Java 9, for "module-info.java" file)
+if s:module_info_cur_buf
+  syn keyword javaModuleStorageClass	module transitive
+  syn keyword javaModuleStmt		open requires exports opens uses provides
+  syn keyword javaModuleExternal	to with
+  syn cluster javaTop add=javaModuleStorageClass,javaModuleStmt,javaModuleExternal
+endif
+
+" Fancy parameterised types (JLS-17, $4.5).
+"
+" Note that false positives may elsewhere occur whenever an identifier
+" is butted against a less-than operator.
+" E.g., cf. (X<Y) with (X < Y).
+if exists("java_highlight_generics")
+  syn keyword javaWildcardBound contained extends super
+  hi def link javaWildcardBound Question
+  hi def link javaGenericsStart Identifier
+
+  " Consider array creation expressions of reifiable types.
+  syn region  javaDimExpr contained transparent matchgroup=javaGenericsStart start="\[" end="\]" nextgroup=javaDimExpr skipwhite skipnl
+
+  if s:selectable_regexp_engine
+    " Request the new regexp engine for [:upper:].
+    "
+    " Parameterised types are delegated to javaGenerics and are not
+    " matched with javaTypeArgument.
+    syn match  javaTypeArgument contained "\%#=2?\|\%(\<\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\)\[\]\|\%(\<\K\k*\>\.\)*\<[$_[:upper:]]\k*\>\)\%(\[\]\)*"
+    syn region javaGenerics transparent matchgroup=javaGenericsStart start=/\%#=2\%(\<\K\k*\>\.\)*\<[$_[:upper:]]\k*\><\%([[:space:]\n]*\%([?@]\|\<\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\)\[\]\|\%(\<\K\k*\>\.\)*\<[$_[:upper:]]\k*\>\)\)\@=/ end=/>/ contains=javaGenerics,javaAnnotation,javaTypeArgument,javaWildcardBound,javaType,@javaClasses nextgroup=javaDimExpr skipwhite skipnl
+  else
+    syn match  javaTypeArgument contained "?\|\%(\<\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\)\[\]\|\%(\<\K\k*\>\.\)*\<[^a-z0-9]\k*\>\)\%(\[\]\)*"
+    syn region javaGenerics transparent matchgroup=javaGenericsStart start=/\%(\<\K\k*\>\.\)*\<[^a-z0-9]\k*\><\%([[:space:]\n]*\%([?@]\|\<\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\)\[\]\|\%(\<\K\k*\>\.\)*\<[^a-z0-9]\k*\>\)\)\@=/ end=/>/ contains=javaGenerics,javaAnnotation,javaTypeArgument,javaWildcardBound,javaType,@javaClasses nextgroup=javaDimExpr skipwhite skipnl
+  endif
+
+  syn cluster javaTop add=javaGenerics
 endif
 
 if exists("java_highlight_java_lang_ids")
@@ -116,9 +144,15 @@ if exists("java_highlight_all")  || exists("java_highlight_java")  || exists("ja
   syn match   javaC_JavaLang "\%(\<ModuleLayer\.\)\@<=\<Controller\>"
   syn match   javaC_JavaLang "\%(\<Runtime\.\)\@<=\<Version\>"
   syn match   javaC_JavaLang "\%(\<System\.\)\@<=\<LoggerFinder\>"
-  syn match   javaC_JavaLang "\%(\<Enum\.\)\@<=\<EnumDesc\>"
-  syn keyword javaC_JavaLang Boolean Character Class ClassLoader Compiler Double Float Integer Long Math Number Object Process Runtime SecurityManager String StringBuffer Thread ThreadGroup Byte Short Void InheritableThreadLocal Package RuntimePermission ThreadLocal StrictMath StackTraceElement Enum ProcessBuilder StringBuilder ClassValue Module ModuleLayer StackWalker Record
+  syn keyword javaC_JavaLang Boolean Character ClassLoader Compiler Double Float Integer Long Math Number Object Process Runtime SecurityManager String StringBuffer Thread ThreadGroup Byte Short Void Package RuntimePermission StrictMath StackTraceElement ProcessBuilder StringBuilder Module ModuleLayer StackWalker Record
   syn match   javaC_JavaLang "\<System\>"	" See javaDebug.
+
+  if !exists("java_highlight_generics")
+    " The non-interface parameterised names of java.lang members.
+    syn match   javaC_JavaLang "\%(\<Enum\.\)\@<=\<EnumDesc\>"
+    syn keyword javaC_JavaLang Class InheritableThreadLocal ThreadLocal Enum ClassValue
+  endif
+
   syn cluster javaTop add=javaC_JavaLang
   syn cluster javaClasses add=javaC_JavaLang
   hi def link javaC_JavaLang javaC_Java
@@ -387,10 +421,10 @@ hi def link htmlComment		Special
 hi def link htmlCommentPart		Special
 hi def link javaSpaceError		Error
 
-if s:isModuleInfoDeclarationCurrentBuffer()
-    hi def link javaModuleStorageClass	StorageClass
-    hi def link javaModuleStmt		Statement
-    hi def link javaModuleExternal	Include
+if s:module_info_cur_buf
+  hi def link javaModuleStorageClass	StorageClass
+  hi def link javaModuleStmt		Statement
+  hi def link javaModuleExternal	Include
 endif
 
 let b:current_syntax = "java"
@@ -399,9 +433,8 @@ if main_syntax == 'java'
   unlet main_syntax
 endif
 
-delfunction! s:isModuleInfoDeclarationCurrentBuffer
 let b:spell_options="contained"
 let &cpo = s:cpo_save
-unlet s:cpo_save
+unlet s:cpo_save s:module_info_cur_buf s:selectable_regexp_engine
 
 " vim: ts=8
