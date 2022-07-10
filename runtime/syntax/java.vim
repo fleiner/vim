@@ -64,7 +64,7 @@ syn match   javaTypedef		"\.\s*\<class\>"ms=s+1
 syn keyword javaClassDecl	enum record
 syn match   javaClassDecl	"^class\>"
 syn match   javaClassDecl	"[^.]\s*\<class\>"ms=s+1
-syn match   javaAnnotation	"@\([_$a-zA-Z][_$a-zA-Z0-9]*\.\)*[_$a-zA-Z][_$a-zA-Z0-9]*\>" contains=javaString
+syn match   javaAnnotation	"@\%(\K\k*\.\)*\K\k*\>"
 syn match   javaClassDecl	"@interface\>"
 syn keyword javaBranch		break continue nextgroup=javaUserLabelRef skipwhite
 syn match   javaUserLabelRef	"\k\+" contained
@@ -195,15 +195,15 @@ if exists("java_space_errors")
   endif
 endif
 
+syn match   javaUserLabel	"^\s*\<\K\k*\>\%(\<default\>\)\@<!\s*:"he=e-1
 syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" end="->" contains=javaNumber,javaCharacter,javaString,javaConstant,@javaClasses
-syn match   javaUserLabel	"^\s*[_$a-zA-Z][_$a-zA-Z0-9_]*\s*:"he=e-1 contains=javaLabel
-syn keyword javaLabel		default
+syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<default\>\%(\s*\%(:\|->\)\)\@=" matchgroup=NONE end=":" end="->" oneline
 
 " highlighting C++ keywords as errors removed, too many people find it
 " annoying.  Was: if !exists("java_allow_cpp_keywords")
 
 " The following cluster contains all java groups except the contained ones
-syn cluster javaTop add=javaExternal,javaError,javaError,javaBranch,javaLabelRegion,javaLabel,javaConditional,javaRepeat,javaBoolean,javaConstant,javaTypedef,javaOperator,javaType,javaType,javaStatement,javaStorageClass,javaAssert,javaExceptions,javaMethodDecl,javaClassDecl,javaClassDecl,javaClassDecl,javaScopeDecl,javaConceptKind,javaError,javaError2,javaUserLabel,javaLangObject,javaAnnotation,javaVarArg
+syn cluster javaTop add=javaExternal,javaError,javaError,javaBranch,javaLabelRegion,javaConditional,javaRepeat,javaBoolean,javaConstant,javaTypedef,javaOperator,javaType,javaType,javaStatement,javaStorageClass,javaAssert,javaExceptions,javaMethodDecl,javaClassDecl,javaClassDecl,javaClassDecl,javaScopeDecl,javaConceptKind,javaError,javaError2,javaUserLabel,javaLangObject,javaAnnotation,javaVarArg
 
 
 " Comments
@@ -278,22 +278,29 @@ if exists("java_highlight_functions")
   syn match   javaMethodReference	"::\%(:\)\@!"
   hi def link javaMethodReference	PreProc
   syn cluster javaTop add=javaMethodReference
+  syn cluster javaFuncParams contains=javaAnnotation,javaBraces,javaString,javaBoolean,javaNumber,javaTypedef,@javaClasses,javaGenerics,javaType,javaVarArg,javaComment,javaLineComment
 
   if java_highlight_functions == "indent"
-    syn match  javaFuncDef "^\(\t\| \{8\}\)[_$a-zA-Z][_$a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
-    syn region javaFuncDef start=+^\(\t\| \{8\}\)[$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
-    syn match  javaFuncDef "^  [$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*)" contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
-    syn region javaFuncDef start=+^  [$_a-zA-Z][$_a-zA-Z0-9_. \[\]<>]*([^-+*/]*,\s*+ end=+)+ contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,@javaClasses,javaAnnotation
+    syn cluster javaFuncParams add=javaScopeDecl,javaConceptKind,javaStorageClass,javaExternal
+    syn match   javaFuncDef "^\%(\t\| \{8\}\)\K\%(\k\|[ .<>\[\]]\)*([^-+*/]*)" contains=@javaFuncParams
+    syn region  javaFuncDef start=+^\%(\t\| \{8\}\)\K\%(\k\|[ .<>\[\]]\)*([^-+*/]*,\s*+ end=+)+ contains=@javaFuncParams
+    syn match   javaFuncDef "^  \K\%(\k\|[ .<>\[\]]\)*([^-+*/]*)" contains=@javaFuncParams
+    syn region  javaFuncDef start=+^  \K\%(\k\|[ .<>\[\]]\)*([^-+*/]*,\s*+ end=+)+ contains=@javaFuncParams
   else
-    " This line catches method declarations at any indentation>0, but it assumes
-    " two things:
-    "	1. class names are always capitalized (ie: Button)
-    "	2. method names are never capitalized (except constructors, of course)
-    "syn region javaFuncDef start=+^\s\+\(\(public\|protected\|private\|static\|abstract\|final\|native\|synchronized\)\s\+\)*\(\(void\|boolean\|char\|byte\|short\|int\|long\|float\|double\|\([A-Za-z_][A-Za-z0-9_$]*\.\)*[A-Z][A-Za-z0-9_$]*\)\(<[^>]*>\)\=\(\[\]\)*\s\+[a-z][A-Za-z0-9_$]*\|[A-Z][A-Za-z0-9_$]*\)\s*([^0-9]+ end=+)+ contains=javaScopeDecl,javaType,javaStorageClass,javaComment,javaLineComment,@javaClasses
-    syn region javaFuncDef start=+^\s\+\(\(public\|protected\|private\|static\|abstract\|final\|native\|synchronized\)\s\+\)*\(<.*>\s\+\)\?\(\(void\|boolean\|char\|byte\|short\|int\|long\|float\|double\|\([A-Za-z_][A-Za-z0-9_$]*\.\)*[A-Z][A-Za-z0-9_$]*\)\(<[^(){}]*>\)\=\(\[\]\)*\s\+[a-z][A-Za-z0-9_$]*\|[A-Z][A-Za-z0-9_$]*\)\s*(+ end=+)+ contains=javaScopeDecl,javaConceptKind,javaType,javaStorageClass,javaComment,javaLineComment,@javaClasses,javaAnnotation
+    " Match arbitrarily indented camelCasedName method declarations.
+    syn cluster javaFuncParams add=javaScopeDecl,javaConceptKind,javaStorageClass,javaExternal
+
+    if s:selectable_regexp_engine
+      " Request the new regexp engine for [:upper:] and [:lower:].
+      syn region javaFuncDef start=/\%#=2^\s\+\%(\%(@\%(\K\k*\.\)*\K\k*\>\)\s\+\)*\%(p\%(ublic\|rotected\|rivate\)\s\+\)\=\%(\%(abstract\|default\)\s\+\|\%(\%(final\|native\|s\%(tatic\|trictfp\|ynchronized\)\)\s\+\)*\)\=\%(<.*[[:space:]-]\@<!>\s\+\)\=\%(void\|\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\|\%(\<\K\k*\>\.\)*\<[$_[:upper:]]\k*\>\%(<[^(){}]*[[:space:]-]\@<!>\)\=\)\%(\[\]\)*\)\s\+\<[$_[:lower:]]\k*\>\s*(/ end=/)/ skip=/@\%(\K\k*\.\)*\K\k*(.\{-})\+\|=.\{-})\+\|\%(["})]\s*\)\+)\+\|\/\*.\{-}\*\/\|\/\/.*$/ keepend contains=@javaFuncParams
+    else
+      " XXX: \C\<[^a-z0-9]\k*\> rejects "type", but matches "τύπος".
+      " XXX: \C\<[^A-Z0-9]\k*\> rejects "Method", but matches "Μέθοδος".
+      syn region javaFuncDef start=/^\s\+\%(\%(@\%(\K\k*\.\)*\K\k*\>\)\s\+\)*\%(p\%(ublic\|rotected\|rivate\)\s\+\)\=\%(\%(abstract\|default\)\s\+\|\%(\%(final\|native\|s\%(tatic\|trictfp\|ynchronized\)\)\s\+\)*\)\=\%(<.*[[:space:]-]\@<!>\s\+\)\=\%(void\|\%(b\%(oolean\|yte\)\|char\|short\|int\|long\|float\|double\|\%(\<\K\k*\>\.\)*\<[^a-z0-9]\k*\>\%(<[^(){}]*[[:space:]-]\@<!>\)\=\)\%(\[\]\)*\)\s\+\<[^A-Z0-9]\k*\>\s*(/ end=/)/ skip=/@\%(\K\k*\.\)*\K\k*(.\{-})\+\|=.\{-})\+\|\%(["})]\s*\)\+)\+\|\/\*.\{-}\*\/\|\/\/.*$/ keepend contains=@javaFuncParams
+    endif
   endif
-  syn match javaLambdaDef "[a-zA-Z_][a-zA-Z0-9_]*\s*->"
-  syn match  javaBraces  "[{}]"
+  syn match   javaLambdaDef "\<\K\k*\>\%(\<default\>\)\@<!\s*->"
+  syn match   javaBraces "[{}]"
   syn cluster javaTop add=javaFuncDef,javaBraces,javaLambdaDef
 endif
 
@@ -317,9 +324,9 @@ if exists("java_highlight_debug")
   syn region javaDebugParen  start=+(+ end=+)+ contained contains=javaDebug.*,javaDebugParen
 
   " to make this work you must define the highlighting for these groups
-  syn match javaDebug "\<System\.\(out\|err\)\.print\(ln\)*\s*("me=e-1 contains=javaDebug.* nextgroup=javaDebugParen
+  syn match javaDebug "\<System\.\%(out\|err\)\.print\%(ln\)\=\s*("me=e-1 contains=javaDebug.* nextgroup=javaDebugParen
   syn match javaDebug "\<p\s*("me=e-1 contains=javaDebug.* nextgroup=javaDebugParen
-  syn match javaDebug "[A-Za-z][a-zA-Z0-9_]*\.printStackTrace\s*("me=e-1 contains=javaDebug.* nextgroup=javaDebugParen
+  syn match javaDebug "\<\K\k*\.printStackTrace\s*("me=e-1 contains=javaDebug.* nextgroup=javaDebugParen
   syn match javaDebug "\<trace[SL]\=\s*("me=e-1 contains=javaDebug.* nextgroup=javaDebugParen
 
   syn cluster javaTop add=javaDebug
@@ -362,8 +369,8 @@ syn match   javaParenError	 "\]"
 hi def link javaParenError	javaError
 
 if exists("java_highlight_functions")
-   syn match javaLambdaDef "([a-zA-Z0-9_<>\[\], \t]*)\s*->"
-   " needs to be defined after the parenthesis error catcher to work
+  syn match javaLambdaDef "\k\@4<!(\%(\k\|[[:space:]<>?\[\]@,.]\)*)\s*->"
+  " needs to be defined after the parenthesis error catcher to work
 endif
 
 if !exists("java_minlines")
