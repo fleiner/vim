@@ -326,11 +326,13 @@ if exists("java_highlight_functions")
     endif
   endif
 
-  syn cluster javaTop add=javaFuncDef
-  syn region  javaBlock matchgroup=javaBlockStart start="{" end="}" transparent fold
+  syn cluster javaTop add=javaFuncDef,javaBlockOther
+  syn match   javaBlockOther "[{}]"
+  syn region  javaBlock matchgroup=javaBlockStart start="\%(^\|^\S[^:]\+\)\@<!{" end="}" transparent fold
   hi def link javaBlockStart javaFuncDef
+  hi def link javaBlockOther javaBlockStart
 else
-  syn region  javaBlock start="{" end="}" transparent fold
+  syn region  javaBlock start="\%(^\|^\S[^:]\+\)\@<!{" end="}" transparent fold
 endif
 
 if exists("java_highlight_debug")
