@@ -209,6 +209,7 @@ syn match   javaSpecialError	 contained "\\."
 syn match   javaSpecialCharError contained "[^']"
 syn match   javaSpecialChar	 contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'ntbrf]\|u\x\{4\}\)"
 syn region  javaString		start=+"+ end=+"+ end=+$+ contains=javaSpecialChar,javaSpecialError,@Spell
+syn region  javaString		start=+\z("""\)\s*$+ end="\z1" contains=javaSpecialChar,javaSpecialError,@Spell 
 " next line disabled, it can cause a crash for a long line
 "syn match   javaStringError	  +"\([^"\\]\|\\.\)*$+
 syn match   javaCharacter	 "'[^']*'" contains=javaSpecialChar,javaSpecialCharError
