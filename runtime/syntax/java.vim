@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:		https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 Jul 10
+" Last Change:	2022 Sep 06
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -252,7 +252,9 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   syn region  javaDocComment	start="/\*\*" end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
   syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag
 
-  syn region javaDocTags	contained start="{@\%(code\|li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
+  syn region javaDocTags	contained start="{@\%(li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
+  syn region javaDocTags	contained start="{@code\>" skip="\$\={[^}]*}['"]\=" end="\%(}\s*\)*}"
+  syn region javaDocTags	contained start="\%(<pre\>[^>]*>\s*\r\=\n\=\s*\**\s*\)\@<={@code\>" end="}\%(\s*\r\=\n\=\s*\**\s*</pre>\)\@="
   syn match  javaDocTags	contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
   syn match  javaDocParam	contained "\s\S\+"
   syn match  javaDocTags	contained "@\%(version\|author\|return\|deprecated\|serial\%(Field\|Data\)\=\)\>"
