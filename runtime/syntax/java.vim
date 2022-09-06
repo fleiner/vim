@@ -229,7 +229,11 @@ endif
 syn region  javaComment		matchgroup=javaCommentStart start="/\*" end="\*/" contains=@javaCommentSpecial,javaTodo,javaCommentError,javaSpaceError,@Spell fold
 syn match   javaCommentStar	contained "^\s*\*[^/]"me=e-1
 syn match   javaCommentStar	contained "^\s*\*$"
-syn match   javaLineComment	"//.*" contains=@javaCommentSpecial2,javaTodo,javaSpaceError,@Spell
+syn match   javaLineComment	"//.*" contains=@javaCommentSpecial2,javaTodo,javaCommentMarkupTag,javaSpaceError,@Spell
+syn match   javaCommentMarkupTag contained "@\%(end\|highlight\|link\|replace\|start\)\>" nextgroup=javaCommentMarkupTagAttr skipwhite
+syn match   javaCommentMarkupTagAttr contained "\<region\>" nextgroup=javaCommentMarkupTagAttr skipwhite
+syn region  javaCommentMarkupTagAttr contained transparent matchgroup=htmlArg start=/\<\%(re\%(gex\|gion\|placement\)\|substring\|t\%(arget\|ype\)\)\%(\s*=\)\@=/ matchgroup=htmlString end=/\%(=\s*\)\@<=\%("[^"]\+"\|'[^']\+'\|\%([.-]\|\k\)\+\)/ nextgroup=javaCommentMarkupTagAttr skipwhite oneline
+hi def link javaCommentMarkupTagAttr htmlArg
 hi def link javaCommentString	javaString
 hi def link javaComment2String	javaString
 hi def link javaCommentCharacter javaCharacter
@@ -249,12 +253,21 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   " here.
   syntax spell default
 
-  syn region  javaDocComment	start="/\*\*" end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
-  syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag
+  syn region  javaDocComment	start="/\*\*" end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaDocSnippetTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
+  syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag,javaDocSnippetTag
 
   syn region javaDocTags	contained start="{@\%(li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
   syn region javaDocTags	contained start="{@code\>" skip="\$\={[^}]*}['"]\=" end="\%(}\s*\)*}"
   syn region javaDocTags	contained start="\%(<pre\>[^>]*>\s*\r\=\n\=\s*\**\s*\)\@<={@code\>" end="}\%(\s*\r\=\n\=\s*\**\s*</pre>\)\@="
+  syn region javaDocSnippetTagAttr contained transparent matchgroup=htmlArg start=/\<\%(class\|file\|id\|lang\|region\)\%(\s*=\)\@=/ matchgroup=htmlString end=/:$/ end=/\%(=\s*\)\@<=\%("[^"]\+"\|'[^']\+'\|\%([.-]\|\k\)\+\)/ nextgroup=javaDocSnippetTagAttr skipwhite skipnl
+
+  if s:selectable_regexp_engine
+    " Request the new regexp engine for [:upper:].
+    syn region javaDocSnippetTag contained start="{@snippet\>" end="\%#=2}\%(\%(\%(\r\=\n\|\r\)\s*\*\+\)\+\s*\%(//\@!\|<[^>]\+>\|@\%(a\%(piNote\|uthor\)\|deprecated\|exception\|impl\%(Note\|Spec\)\|p\%(aram\|rovides\)\|return\|s\%(e\%(e\|rial\%(Field\|Data\)\=\)\|ince\)\|throws\|uses\|version\)\>\|[[:upper:]]\)\)\@=" contains=javaDocSnippetTagAttr,javaCommentMarkupTag
+  else " Ugh, what a crock! End: crane over the right brace for */, <.>, @, \u.
+    syn region javaDocSnippetTag contained start="{@snippet\>" end="}\%(\%(\%(\r\=\n\|\r\)\s*\*\+\)\+\s*\%(//\@!\|<[^>]\+>\|@\%(a\%(piNote\|uthor\)\|deprecated\|exception\|impl\%(Note\|Spec\)\|p\%(aram\|rovides\)\|return\|s\%(e\%(e\|rial\%(Field\|Data\)\=\)\|ince\)\|throws\|uses\|version\)\>\|\u\)\)\@=" contains=javaDocSnippetTagAttr,javaCommentMarkupTag
+  endif
+
   syn match  javaDocTags	contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
   syn match  javaDocParam	contained "\s\S\+"
   syn match  javaDocTags	contained "@\%(version\|author\|return\|deprecated\|serial\%(Field\|Data\)\=\)\>"
@@ -488,6 +501,7 @@ hi def link javaAnnotationStart		javaAnnotation
 
 hi def link javaCommentTitle		SpecialComment
 hi def link javaDocTags			Special
+hi def link javaDocSnippetTag		Special
 hi def link javaDocParam		Function
 hi def link javaDocSeeTagParam		Function
 hi def link javaCommentStar		javaComment
@@ -497,6 +511,8 @@ hi def link javaExternal		Include
 
 hi def link htmlComment			Special
 hi def link htmlCommentPart		Special
+hi def link htmlArg			Type
+hi def link htmlString			String
 hi def link javaSpaceError		Error
 
 if s:module_info_cur_buf
