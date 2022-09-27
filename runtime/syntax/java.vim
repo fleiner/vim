@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:		https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 Sep 06
+" Last Change:	2022 Sep 27
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -253,26 +253,19 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   " here.
   syntax spell default
 
-  syn region  javaDocComment	start="/\*\*" end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaDocSnippetTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
-  syn region  javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag,javaDocSnippetTag
-
+  syn region javaDocComment	start="/\*\*" end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaDocCodeTag,javaDocSnippetTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
+  syn region javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag,javaDocCodeTag,javaDocSnippetTag
   syn region javaDocTags	contained start="{@\%(li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
-  syn region javaDocTags	contained start="{@code\>" skip="\$\={[^}]*}['"]\=" end="\%(}\s*\)*}"
-  syn region javaDocTags	contained start="\%(<pre\>[^>]*>\s*\r\=\n\=\s*\**\s*\)\@<={@code\>" end="}\%(\s*\r\=\n\=\s*\**\s*</pre>\)\@="
-  syn region javaDocSnippetTagAttr contained transparent matchgroup=htmlArg start=/\<\%(class\|file\|id\|lang\|region\)\%(\s*=\)\@=/ matchgroup=htmlString end=/:$/ end=/\%(=\s*\)\@<=\%("[^"]\+"\|'[^']\+'\|\%([.-]\|\k\)\+\)/ nextgroup=javaDocSnippetTagAttr skipwhite skipnl
-
-  if s:selectable_regexp_engine
-    " Request the new regexp engine for [:upper:].
-    syn region javaDocSnippetTag contained start="{@snippet\>" end="\%#=2}\%(\%(\%(\r\=\n\|\r\)\s*\*\+\)\+\s*\%(//\@!\|<[^>]\+>\|@\%(a\%(piNote\|uthor\)\|deprecated\|exception\|impl\%(Note\|Spec\)\|p\%(aram\|rovides\)\|return\|s\%(e\%(e\|rial\%(Field\|Data\)\=\)\|ince\)\|throws\|uses\|version\)\>\|[[:upper:]]\)\)\@=" contains=javaDocSnippetTagAttr,javaCommentMarkupTag
-  else " Ugh, what a crock! End: crane over the right brace for */, <.>, @, \u.
-    syn region javaDocSnippetTag contained start="{@snippet\>" end="}\%(\%(\%(\r\=\n\|\r\)\s*\*\+\)\+\s*\%(//\@!\|<[^>]\+>\|@\%(a\%(piNote\|uthor\)\|deprecated\|exception\|impl\%(Note\|Spec\)\|p\%(aram\|rovides\)\|return\|s\%(e\%(e\|rial\%(Field\|Data\)\=\)\|ince\)\|throws\|uses\|version\)\>\|\u\)\)\@=" contains=javaDocSnippetTagAttr,javaCommentMarkupTag
-  endif
-
-  syn match  javaDocTags	contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
   syn match  javaDocParam	contained "\s\S\+"
+  syn match  javaDocTags	contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
   syn match  javaDocTags	contained "@\%(version\|author\|return\|deprecated\|serial\%(Field\|Data\)\=\)\>"
   syn region javaDocSeeTag	contained matchgroup=javaDocTags start="@see\s\+" matchgroup=NONE end="\_."re=e-1 contains=javaDocSeeTagParam
-  syn match  javaDocSeeTagParam contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\%(\k\|\.\)*\%(#\k\+\%((\_[^)]*)\)\=\)\=@ extend
+  syn match  javaDocSeeTagParam	contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\%(\k\|\.\)*\%(#\k\+\%((\_[^)]*)\)\=\)\=@ extend
+  syn region javaCodeSkipBlock	contained transparent start="{\%(@code\>\)\@!" end="}" contains=javaCodeSkipBlock,javaDocCodeTag
+  syn region javaDocCodeTag	contained start="{@code\>" end="}" contains=javaDocCodeTag,javaCodeSkipBlock
+  syn region javaDocSnippetTagAttr contained transparent matchgroup=htmlArg start=/\<\%(class\|file\|id\|lang\|region\)\%(\s*=\)\@=/ matchgroup=htmlString end=/:$/ end=/\%(=\s*\)\@<=\%("[^"]\+"\|'[^']\+'\|\%([.-]\|\k\)\+\)/ nextgroup=javaDocSnippetTagAttr skipwhite skipnl
+  syn region javaSnippetSkipBlock contained transparent start="{\%(@snippet\>\)\@!" end="}" contains=javaSnippetSkipBlock,javaDocSnippetTag,javaCommentMarkupTag
+  syn region javaDocSnippetTag	contained start="{@snippet\>" end="}" contains=javaDocSnippetTag,javaSnippetSkipBlock,javaDocSnippetTagAttr,javaCommentMarkupTag
   syntax case match
 endif
 
@@ -501,6 +494,7 @@ hi def link javaAnnotationStart		javaAnnotation
 
 hi def link javaCommentTitle		SpecialComment
 hi def link javaDocTags			Special
+hi def link javaDocCodeTag		Special
 hi def link javaDocSnippetTag		Special
 hi def link javaDocParam		Function
 hi def link javaDocSeeTagParam		Function
