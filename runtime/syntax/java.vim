@@ -18,7 +18,7 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
-" Admit the ASCII dollar sign to keyword characters (JLS-17, $3.8).
+" Admit the ASCII dollar sign to keyword characters (JLS-17, §3.8).
 execute 'syntax iskeyword '.&iskeyword.',$'
 
 " some characters that cannot be in a java program (outside a string)
@@ -44,7 +44,7 @@ syn keyword javaTypedef		this super
 syn keyword javaOperator	var new instanceof
 " Since the yield statement, which could take a parenthesised operand,
 " and _qualified_ yield methods get along within the switch block
-" (JLS-17, $3.8), it seems futile to make a region definition for this
+" (JLS-17, §3.8), it seems futile to make a region definition for this
 " block; instead look for the _yield_ word alone, and if found,
 " backtrack (arbitrarily) 80 bytes, at most, on the matched line and,
 " if necessary, on the line before that (h: \@<=), trying to match
@@ -86,7 +86,7 @@ if s:module_info_cur_buf
   syn cluster javaTop add=javaModuleStorageClass,javaModuleStmt,javaModuleExternal
 endif
 
-" Fancy parameterised types (JLS-17, $4.5).
+" Fancy parameterised types (JLS-17, §4.5).
 "
 " Note that false positives may elsewhere occur whenever an identifier
 " is butted against a less-than operator.
@@ -284,10 +284,16 @@ syn match   javaTextBlockError	+"""\s*"""+
 syn match   javaCharacter	"'[^']*'" contains=javaSpecialChar,javaSpecialCharError
 syn match   javaCharacter	"'\\''" contains=javaSpecialChar
 syn match   javaCharacter	"'[^\\]'"
-syn match   javaNumber		"\<\(0[bB][0-1]\+\|0[0-7]*\|0[xX]\x\+\|\d\(\d\|_\d\)*\)[lL]\=\>"
-syn match   javaNumber		"\(\<\d\(\d\|_\d\)*\.\(\d\(\d\|_\d\)*\)\=\|\.\d\(\d\|_\d\)*\)\([eE][-+]\=\d\(\d\|_\d\)*\)\=[fFdD]\="
-syn match   javaNumber		"\<\d\(\d\|_\d\)*[eE][-+]\=\d\(\d\|_\d\)*[fFdD]\=\>"
-syn match   javaNumber		"\<\d\(\d\|_\d\)*\([eE][-+]\=\d\(\d\|_\d\)*\)\=[fFdD]\>"
+
+" Integer literals (JLS-17, §3.10.1):
+syn keyword javaNumber		0 0l 0L
+syn match   javaNumber		"\<\%(0\%([xX]\x\%(_*\x\)*\|_*\o\%(_*\o\)*\|[bB][01]\%(_*[01]\)*\)\|[1-9]\%(_*\d\)*\)[lL]\=\>"
+" Decimal floating-point literals (JLS-17, §3.10.2):
+syn match   javaNumber		"\%(\<\d\%(_*\d\)*\.\%(\d\%(_*\d\)*\)\=\|\.\d\%(_*\d\)*\)\%([eE][-+]\=\d\%(_*\d\)*\)\=[fFdD]\=\>"
+syn match   javaNumber		"\<\d\%(_*\d\)*[eE][-+]\=\d\%(_*\d\)*[fFdD]\=\>"
+syn match   javaNumber		"\<\d\%(_*\d\)*\%([eE][-+]\=\d\%(_*\d\)*\)\=[fFdD]\>"
+" Hexadecimal floating-point literals (JLS-17, §3.10.2):
+syn match   javaNumber		"\<0[xX]\%(\x\%(_*\x\)*\.\=\|\%(_*\x\)*\.\x\%(_*\x\)*\)[pP][-+]\=\d\%(_*\d\)*[fFdD]\=\>"
 
 " Unicode characters
 syn match   javaSpecial "\\u\x\x\x\x"
@@ -353,10 +359,12 @@ if exists("java_highlight_debug")
   syn match   javaDebugCharacter	contained "'[^\\]'"
   syn match   javaDebugSpecialCharacter	contained "'\\.'"
   syn match   javaDebugSpecialCharacter	contained "'\\''"
-  syn match   javaDebugNumber		contained "\<\(0[0-7]*\|0[xX]\x\+\|\d\+\)[lL]\=\>"
-  syn match   javaDebugNumber		contained "\(\<\d\+\.\d*\|\.\d\+\)\([eE][-+]\=\d\+\)\=[fFdD]\="
-  syn match   javaDebugNumber		contained "\<\d\+[eE][-+]\=\d\+[fFdD]\=\>"
-  syn match   javaDebugNumber		contained "\<\d\+\([eE][-+]\=\d\+\)\=[fFdD]\>"
+  syn keyword javaDebugNumber		contained 0 0l 0L
+  syn match   javaDebugNumber		contained "\<\%(0\%([xX]\x\%(_*\x\)*\|_*\o\%(_*\o\)*\|[bB][01]\%(_*[01]\)*\)\|[1-9]\%(_*\d\)*\)[lL]\=\>"
+  syn match   javaDebugNumber		contained "\%(\<\d\%(_*\d\)*\.\%(\d\%(_*\d\)*\)\=\|\.\d\%(_*\d\)*\)\%([eE][-+]\=\d\%(_*\d\)*\)\=[fFdD]\=\>"
+  syn match   javaDebugNumber		contained "\<\d\%(_*\d\)*[eE][-+]\=\d\%(_*\d\)*[fFdD]\=\>"
+  syn match   javaDebugNumber		contained "\<\d\%(_*\d\)*\%([eE][-+]\=\d\%(_*\d\)*\)\=[fFdD]\>"
+  syn match   javaDebugNumber		contained "\<0[xX]\%(\x\%(_*\x\)*\.\=\|\%(_*\x\)*\.\x\%(_*\x\)*\)[pP][-+]\=\d\%(_*\d\)*[fFdD]\=\>"
   syn keyword javaDebugBoolean		contained true false
   syn keyword javaDebugType		contained null this super
   syn region  javaDebugParen		contained start=+(+ end=+)+ contains=javaDebug.*,javaDebugParen
