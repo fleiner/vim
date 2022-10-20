@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:		https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 Sep 30
+" Last Change:	2022 Oct 20
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -275,7 +275,7 @@ syn match   javaComment		"/\*\*/"
 " Strings and constants
 syn match   javaSpecialError	 contained "\\."
 syn match   javaSpecialCharError contained "[^']"
-syn match   javaSpecialChar	 contained "\\\([4-9]\d\|[0-3]\d\d\|[\"\\'bstnfr]\|u\x\{4\}\)"
+syn match   javaSpecialChar	 contained "\\\%(u\x\x\x\x\|[0-3]\o\o\|\o\o\=\|[bstnfr"'\\]\)"
 syn region  javaString		start=+"+ end=+"+ end=+$+ contains=javaSpecialChar,javaSpecialError,@Spell
 syn region  javaString		start=+"""[ \t\x0c\r]*$+hs=e+1 end=+"""+he=s-1 contains=javaSpecialChar,javaSpecialError,javaTextBlockError,@Spell
 syn match   javaTextBlockError	+"""\s*"""+
@@ -290,7 +290,7 @@ syn match   javaNumber		"\<\d\(\d\|_\d\)*[eE][-+]\=\d\(\d\|_\d\)*[fFdD]\=\>"
 syn match   javaNumber		"\<\d\(\d\|_\d\)*\([eE][-+]\=\d\(\d\|_\d\)*\)\=[fFdD]\>"
 
 " Unicode characters
-syn match   javaSpecial "\\u\d\{4\}"
+syn match   javaSpecial "\\u\x\x\x\x"
 
 syn cluster javaTop add=javaString,javaCharacter,javaNumber,javaSpecial,javaStringError,javaTextBlockError
 
@@ -345,10 +345,10 @@ endif
 
 if exists("java_highlight_debug")
   " Strings and constants
-  syn match   javaDebugSpecial		contained "\\\d\d\d\|\\."
+  syn match   javaDebugSpecial		contained "\\\%(u\x\x\x\x\|[0-3]\o\o\|\o\o\=\|[bstnfr"'\\]\)"
   syn region  javaDebugString		contained start=+"+ end=+"+ contains=javaDebugSpecial
   syn region  javaDebugString		contained start=+"""[ \t\x0c\r]*$+hs=e+1 end=+"""+he=s-1 contains=javaDebugSpecial,javaDebugTextBlockError
-  syn match   javaDebugStringError	contained +"\([^"\\]\|\\.\)*$+
+  syn match   javaDebugStringError	contained +"\%([^"\\]\|\\.\)*$+
   syn match   javaDebugTextBlockError	contained +"""\s*"""+
   syn match   javaDebugCharacter	contained "'[^\\]'"
   syn match   javaDebugSpecialCharacter	contained "'\\.'"
