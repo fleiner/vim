@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:		https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 Oct 20
+" Last Change:	2022 Oct 28
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -254,7 +254,7 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   syntax spell default
 
   syn region javaDocComment	start="/\*\*" end="\*/" keepend contains=javaCommentTitle,@javaHtml,javaDocTags,javaDocSeeTag,javaDocCodeTag,javaDocSnippetTag,javaTodo,javaCommentError,javaSpaceError,@Spell fold
-  syn region javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle keepend end="\.$" end="\.[ \t\r<&]"me=e-1 end="[^{]@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag,javaDocCodeTag,javaDocSnippetTag
+  syn region javaCommentTitle	contained matchgroup=javaDocComment start="/\*\*" matchgroup=javaCommentTitle end="\.$" end="\.[ \t\r]\@=" end="\%(^\s*\**\s*\)\@<=@"me=s-2,he=s-1 end="\*/"me=s-1,he=s-1 contains=@javaHtml,javaCommentStar,javaTodo,javaCommentError,javaSpaceError,@Spell,javaDocTags,javaDocSeeTag,javaDocCodeTag,javaDocSnippetTag
   syn region javaDocTags	contained start="{@\%(li\%(teral\|nk\%(plain\)\=\)\|inherit[Dd]oc\|doc[rR]oot\|value\)\>" end="}"
   syn match  javaDocParam	contained "\s\S\+"
   syn match  javaDocTags	contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
