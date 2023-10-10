@@ -2,7 +2,7 @@
 " Language:	Java
 " Maintainer:	Claudio Fleiner <claudio@fleiner.com>
 " URL:		https://github.com/fleiner/vim/blob/master/runtime/syntax/java.vim
-" Last Change:	2022 Oct 28
+" Last Change:	2023 Oct 10
 
 " Please check :help java.vim for comments on some of the options available.
 
@@ -206,8 +206,18 @@ if exists("java_space_errors")
 endif
 
 syn match   javaUserLabel	"^\s*\<\K\k*\>\%(\<default\>\)\@<!\s*:"he=e-1
-syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" end="->" contains=javaNumber,javaCharacter,javaString,javaConstant,@javaClasses
+syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<case\>" matchgroup=NONE end=":" end="->" contains=javaBoolean,javaNumber,javaCharacter,javaString,javaConstant,@javaClasses,javaGenerics,javaType,javaLabelVarType,javaLabelDefault,javaLabelWhenClause
 syn region  javaLabelRegion	transparent matchgroup=javaLabel start="\<default\>\%(\s*\%(:\|->\)\)\@=" matchgroup=NONE end=":" end="->" oneline
+" Consider grouped _default_ _case_ labels, e.g.
+" case null, default ->
+" case null: default:
+syn keyword javaLabelDefault	contained default
+syn keyword javaLabelVarType	contained var
+" Allow for the contingency of the enclosing region not being able to
+" _keep_ its _end_, e.g. case ':':.
+syn region  javaLabelWhenClause	contained transparent matchgroup=javaLabel start="\<when\>" matchgroup=NONE end=":"me=e-1 end="->"me=e-2 contains=TOP,javaExternal
+hi def link javaLabelDefault	javaLabel
+hi def link javaLabelVarType	javaOperator
 
 " Highlighting C++ keywords as errors removed, too many people find it
 " annoying.  Was: if !exists("java_allow_cpp_keywords")
