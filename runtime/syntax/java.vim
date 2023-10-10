@@ -271,7 +271,7 @@ if !exists("java_ignore_javadoc") && main_syntax != 'jsp'
   syn match  javaDocTags	contained "@\%(param\|exception\|throws\|since\)\s\+\S\+" contains=javaDocParam
   syn match  javaDocTags	contained "@\%(version\|author\|return\|deprecated\|serial\%(Field\|Data\)\=\)\>"
   syn region javaDocSeeTag	contained matchgroup=javaDocTags start="@see\s\+" matchgroup=NONE end="\_."re=e-1 contains=javaDocSeeTagParam
-  syn match  javaDocSeeTagParam	contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\%(\k\|\.\)*\%(#\k\+\%((\_[^)]*)\)\=\)\=@ extend
+  syn match  javaDocSeeTagParam	contained @"\_[^"]\+"\|<a\s\+\_.\{-}</a>\|\%(\k\|\.\)*\%(#\k\+\%((\_[^)]*)\)\=\)\=@ contains=@javaHtml extend
   syn region javaCodeSkipBlock	contained transparent start="{\%(@code\>\)\@!" end="}" contains=javaCodeSkipBlock,javaDocCodeTag
   syn region javaDocCodeTag	contained start="{@code\>" end="}" contains=javaDocCodeTag,javaCodeSkipBlock
   syn region javaDocSnippetTagAttr contained transparent matchgroup=htmlArg start=/\<\%(class\|file\|id\|lang\|region\)\%(\s*=\)\@=/ matchgroup=htmlString end=/:$/ end=/\%(=\s*\)\@<=\%("[^"]\+"\|'[^']\+'\|\%([.-]\|\k\)\+\)/ nextgroup=javaDocSnippetTagAttr skipwhite skipnl
