@@ -148,6 +148,8 @@ if exists("java_highlight_all") || exists("java_highlight_java") || exists("java
   syn match   javaC_JavaLang "\%(\<System\.\)\@<=\<LoggerFinder\>"
   syn keyword javaC_JavaLang Boolean Character ClassLoader Compiler Double Float Integer Long Math Number Object Process Runtime SecurityManager String StringBuffer Thread ThreadGroup Byte Short Void Package RuntimePermission StrictMath StackTraceElement ProcessBuilder StringBuilder Module ModuleLayer StackWalker Record
   syn match   javaC_JavaLang "\<System\>"	" See javaDebug.
+  " As of Java 21, java.lang.Compiler is no more (deprecated in Java 9).
+  syn keyword javaIgnore Compiler
 
   if !exists("java_highlight_generics")
     " The non-interface parameterised names of java.lang members.
